@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Talk to Your Data</title>
+    <style>
+      body { font: 15px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 900px; }
+      #status { color: #555; }
+      input { width: 60%; padding: 0.4rem; font: inherit; }
+      button { padding: 0.4rem 0.9rem; font: inherit; }
+      pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <h1>Talk to Your Data</h1>
+    <p id="status">Loading DuckDB-WASM…</p>
+    <div>
+      <input id="q" type="text" placeholder="SQL to run against `collisions`…" disabled />
+      <button id="run" disabled>Run</button>
+    </div>
+    <pre id="out"></pre>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
