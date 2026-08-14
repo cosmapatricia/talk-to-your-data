@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.idea/
+.DS_Store
+
+# Raw source data downloaded by scripts/prepare-data.mjs.
+# The derived Parquet in public/data/ IS committed; these originals are not.
+data/raw/
+
+# Local Wrangler state
+.wrangler/
+.dev.vars

@@ -1,0 +1,205 @@
+{
+  "generated_at": "2026-08-14T11:09:04.632Z",
+  "source": {
+    "name": "Department for Transport — Road Safety Data (data.gov.uk)",
+    "licence": "Open Government Licence v3.0",
+    "base_url": "https://data.dft.gov.uk/road-accidents-safety-data",
+    "year": 2025,
+    "data_guide": {
+      "year": 2025,
+      "url": "https://data.dft.gov.uk/road-accidents-safety-data/dft-road-casualty-statistics-road-safety-open-dataset-data-guide-2025.xlsx"
+    }
+  },
+  "dialect": "duckdb",
+  "tables": [
+    {
+      "name": "collisions",
+      "grain": "one row per reported collision",
+      "file": "/data/collisions.parquet",
+      "file_bytes": 4015296,
+      "row_count": 101525,
+      "date_range": [
+        "2025-01-01",
+        "2025-12-31"
+      ],
+      "columns": [
+        {
+          "name": "collision_index",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "collision_year",
+          "type": "BIGINT"
+        },
+        {
+          "name": "collision_ref_no",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "location_easting_osgr",
+          "type": "BIGINT"
+        },
+        {
+          "name": "location_northing_osgr",
+          "type": "BIGINT"
+        },
+        {
+          "name": "longitude",
+          "type": "DOUBLE"
+        },
+        {
+          "name": "latitude",
+          "type": "DOUBLE"
+        },
+        {
+          "name": "police_force",
+          "type": "BIGINT"
+        },
+        {
+          "name": "collision_severity",
+          "type": "BIGINT"
+        },
+        {
+          "name": "number_of_vehicles",
+          "type": "BIGINT"
+        },
+        {
+          "name": "number_of_casualties",
+          "type": "BIGINT"
+        },
+        {
+          "name": "date",
+          "type": "DATE"
+        },
+        {
+          "name": "day_of_week",
+          "type": "BIGINT"
+        },
+        {
+          "name": "time",
+          "type": "TIME"
+        },
+        {
+          "name": "local_authority_district",
+          "type": "BIGINT"
+        },
+        {
+          "name": "local_authority_ons_district",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "local_authority_highway",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "local_authority_highway_current",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "first_road_class",
+          "type": "BIGINT"
+        },
+        {
+          "name": "first_road_number",
+          "type": "BIGINT"
+        },
+        {
+          "name": "road_type",
+          "type": "BIGINT"
+        },
+        {
+          "name": "speed_limit",
+          "type": "BIGINT"
+        },
+        {
+          "name": "junction_detail_historic",
+          "type": "BIGINT"
+        },
+        {
+          "name": "junction_detail",
+          "type": "BIGINT"
+        },
+        {
+          "name": "junction_control",
+          "type": "BIGINT"
+        },
+        {
+          "name": "second_road_class",
+          "type": "BIGINT"
+        },
+        {
+          "name": "second_road_number",
+          "type": "BIGINT"
+        },
+        {
+          "name": "pedestrian_crossing_human_control_historic",
+          "type": "BIGINT"
+        },
+        {
+          "name": "pedestrian_crossing_physical_facilities_historic",
+          "type": "BIGINT"
+        },
+        {
+          "name": "pedestrian_crossing",
+          "type": "BIGINT"
+        },
+        {
+          "name": "light_conditions",
+          "type": "BIGINT"
+        },
+        {
+          "name": "weather_conditions",
+          "type": "BIGINT"
+        },
+        {
+          "name": "road_surface_conditions",
+          "type": "BIGINT"
+        },
+        {
+          "name": "special_conditions_at_site",
+          "type": "BIGINT"
+        },
+        {
+          "name": "carriageway_hazards_historic",
+          "type": "BIGINT"
+        },
+        {
+          "name": "carriageway_hazards",
+          "type": "BIGINT"
+        },
+        {
+          "name": "urban_or_rural_area",
+          "type": "BIGINT"
+        },
+        {
+          "name": "did_police_officer_attend_scene_of_accident",
+          "type": "BIGINT"
+        },
+        {
+          "name": "trunk_road_flag",
+          "type": "BIGINT"
+        },
+        {
+          "name": "lsoa_of_accident_location",
+          "type": "VARCHAR"
+        },
+        {
+          "name": "enhanced_severity_collision",
+          "type": "BIGINT"
+        },
+        {
+          "name": "collision_injury_based",
+          "type": "BIGINT"
+        },
+        {
+          "name": "collision_adjusted_severity_serious",
+          "type": "DOUBLE"
+        },
+        {
+          "name": "collision_adjusted_severity_slight",
+          "type": "DOUBLE"
+        }
+      ]
+    }
+  ]
+}
