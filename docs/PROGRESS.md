@@ -4,7 +4,7 @@ A running snapshot of where the build is and what's next, so a resumed or fresh
 session (or a `git pull`) lands in the right place. `PLAN.md` holds the *decisions*;
 this file holds the *state*.
 
-_Last updated: 2026-08-14._
+_Last updated: 2026-08-16._
 
 ## Done
 
@@ -22,22 +22,31 @@ _Last updated: 2026-08-14._
   fetches the committed Parquet, registers it, creates the `collisions` view.
   **Verified in-browser: 101,525 rows, matches `schema.json`.** Arbitrary SQL is already
   editable and re-runnable in the UI (partial acceptance check met).
-- **Git** — plan → data pipeline → browser loader, all committed and pushed to
-  `origin/main`. Pushing works from the agent shell (token seeded in `wincred`).
+- **Retrieval snippets** — `shared/snippets.json`: ~19 hand-authored facts from the
+  DfT data guide (severity/weather/road-surface/light/day-of-week code maps, the
+  `-1` missing-sentinel convention, speed_limit-is-numeric-mph, date handling, KPI
+  definitions, worked question→SQL examples). Inlined wholesale into the prompt.
+- **Golden set** — `shared/golden.json`: 10 questions with hand-authored reference SQL
+  (the oracle), 9 `exact` + 1 `fuzzy`; most require a code map, so they double as the
+  retrieval context-on/off A/B. `scripts/verify-golden.mjs` (`npm run verify-golden`)
+  runs them against the committed Parquet and writes `shared/golden-expected.json`.
+  All 10 run clean (fatal=1,453; fog-serious-or-worse=110; the fuzzy weather one shows
+  raw counts crown "Fine" — the count-vs-danger caveat, with a real number).
+- **Git** — plan → data pipeline → browser loader → snippets + golden set, all
+  committed and pushed to `origin/main`. Pushing works from the agent shell (token in
+  `wincred`).
 
-## Next — open fork
+## Next
 
-Pick one:
-
-1. **Snippets + golden-set reference SQL** _(recommended — the named-risk de-risk)._
-   - Author 10–30 retrieval snippets from `data/raw/data-guide-2025.xlsx`: severity /
-     weather / road-surface code maps, date handling, KPI definitions, a few worked
-     question→SQL examples.
-   - Hand-write the ~10 golden questions (sketched in `PLAN.md` §3) as reference SQL,
-     run them against the browser / DuckDB to capture expected results.
-   - Falls out of this: the validator's table/column allow-list (from `schema.json`).
-2. **Worker + `generateSQL()` loop** — close question→SQL→table end to end first,
-   snippets after.
+1. **Worker + `generateSQL()` loop** — Worker endpoint assembles schema snapshot +
+   inlined snippets + question, calls Workers AI (Llama 3.x) behind the `generateSQL()`
+   seam, returns `{ sql, rationale }`; wire question→SQL→table in the browser, with the
+   validator sitting between generate and run.
+2. **Build + attack the validator** — AST/parser SELECT-only guard + sandbox; honest
+   bypass table.
+3. **Full golden harness** — compare the model's SQL result to the reference SQL results
+   in `golden-expected.json`, context-on vs context-off; paste the pass/fail table into
+   `VERIFICATION.md`.
 
 ## Locked decisions (see PLAN.md for the why)
 

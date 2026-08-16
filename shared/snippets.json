@@ -1,0 +1,101 @@
+{
+  "_comment": "Retrieval corpus: short facts about the collisions dataset, hand-authored from the DfT data guide (data/raw/data-guide-2025.xlsx). These are inlined into the SQL-generation prompt. At ~20 snippets they fit wholesale; see PLAN.md for when this would become embedding-based selection. Codes are load-bearing: the model cannot answer 'how many fatal collisions' from the schema alone.",
+  "table": "collisions",
+  "snippets": [
+    {
+      "id": "overview",
+      "category": "dataset",
+      "text": "Table `collisions`: one row per reported road collision in Great Britain, from the Department for Transport road safety open dataset. Every categorical column is stored as an integer code whose meaning comes from the DfT data guide, not from the value itself."
+    },
+    {
+      "id": "scope-single-year",
+      "category": "dataset",
+      "text": "The data covers a single year (2025 only). Any question about trends across years cannot be answered from this table; treat 'over time' as within-2025 (by month or day)."
+    },
+    {
+      "id": "date-handling",
+      "category": "dates",
+      "text": "`date` is a DuckDB DATE and `time` is a TIME (already parsed during data prep). Extract parts with month(\"date\"), dayofmonth(\"date\"), etc. Do not string-parse them."
+    },
+    {
+      "id": "missing-sentinel",
+      "category": "semantics",
+      "text": "Most coded columns use -1 = 'Data missing or out of range', and some also use 9 or 99 = 'unknown'. These are sentinels, not real categories: exclude them from category breakdowns and from rate denominators unless the user explicitly asks about missing/unknown data."
+    },
+    {
+      "id": "counts-plain",
+      "category": "semantics",
+      "text": "`number_of_casualties` and `number_of_vehicles` are plain integers (not coded). Total casualties = SUM(number_of_casualties); a collision count is COUNT(*) over rows, which is not the same as a casualty count."
+    },
+    {
+      "id": "severity-codes",
+      "category": "codes",
+      "text": "collision_severity: 1 = Fatal, 2 = Serious, 3 = Slight. Lower is MORE severe. This column has no missing/-1 code — every row has a severity. 'Serious or worse' / 'serious or fatal' = collision_severity <= 2. A 'fatal collision' = collision_severity = 1."
+    },
+    {
+      "id": "severity-kpi",
+      "category": "kpi",
+      "text": "Fatal-collision rate / share = COUNT(*) FILTER (WHERE collision_severity = 1) divided by COUNT(*). Because severity is never missing, the denominator is all rows in scope."
+    },
+    {
+      "id": "day-of-week-codes",
+      "category": "codes",
+      "text": "day_of_week: 1 = Sunday, 2 = Monday, 3 = Tuesday, 4 = Wednesday, 5 = Thursday, 6 = Friday, 7 = Saturday. Note the week starts on Sunday, so code 1 is Sunday, not Monday."
+    },
+    {
+      "id": "weather-codes",
+      "category": "codes",
+      "text": "weather_conditions: -1 = missing, 1 = Fine no high winds, 2 = Raining no high winds, 3 = Snowing no high winds, 4 = Fine + high winds, 5 = Raining + high winds, 6 = Snowing + high winds, 7 = Fog or mist, 8 = Other, 9 = Unknown. 'In fog' = weather_conditions = 7. 'In rain' = weather_conditions IN (2, 5)."
+    },
+    {
+      "id": "road-surface-codes",
+      "category": "codes",
+      "text": "road_surface_conditions: -1 = missing, 1 = Dry, 2 = Wet or damp, 3 = Snow, 4 = Frost or ice, 5 = Flood over 3cm deep, 6 = Oil or diesel, 7 = Mud, 9 = unknown. 'On a wet road' = road_surface_conditions = 2; 'dry' = 1."
+    },
+    {
+      "id": "light-codes",
+      "category": "codes",
+      "text": "light_conditions: -1 = missing, 1 = Daylight, 4 = Darkness - lights lit, 5 = Darkness - lights unlit, 6 = Darkness - no lighting, 7 = Darkness - lighting unknown. 'In darkness / at night' = light_conditions IN (4, 5, 6, 7); 'in daylight' = light_conditions = 1. There are no codes 2 or 3."
+    },
+    {
+      "id": "urban-rural-codes",
+      "category": "codes",
+      "text": "urban_or_rural_area: -1 = missing, 1 = Urban, 2 = Rural, 3 = Unallocated. 'Urban' = 1, 'rural' = 2."
+    },
+    {
+      "id": "road-type-codes",
+      "category": "codes",
+      "text": "road_type: -1 = missing, 1 = Roundabout, 2 = One way street, 3 = Dual carriageway, 6 = Single carriageway, 7 = Slip road, 9 = Unknown, 12 = One way street/Slip road. Codes are not contiguous."
+    },
+    {
+      "id": "first-road-class-codes",
+      "category": "codes",
+      "text": "first_road_class: -1 = missing, 1 = Motorway, 2 = A(M), 3 = A, 4 = B, 5 = C, 6 = Unclassified. 'On a motorway' = first_road_class = 1."
+    },
+    {
+      "id": "speed-limit-semantics",
+      "category": "semantics",
+      "text": "speed_limit is the actual speed limit in mph, NOT an arbitrary category code: valid values are 20, 30, 40, 50, 60, 70. -1 = missing and 99 = unknown are sentinels. Group or filter on the real mph values and exclude -1 and 99: WHERE speed_limit NOT IN (-1, 99)."
+    },
+    {
+      "id": "example-fatal-count",
+      "category": "example",
+      "text": "Q: How many fatal collisions were there? SQL: SELECT count(*) AS fatal_collisions FROM collisions WHERE collision_severity = 1"
+    },
+    {
+      "id": "example-fog-serious",
+      "category": "example",
+      "text": "Q: How many serious or fatal collisions happened in fog? SQL: SELECT count(*) AS n FROM collisions WHERE collision_severity <= 2 AND weather_conditions = 7"
+    },
+    {
+      "id": "example-by-month",
+      "category": "example",
+      "text": "Q: How many collisions each month? SQL: SELECT month(\"date\") AS month, count(*) AS collisions FROM collisions GROUP BY 1 ORDER BY 1"
+    },
+    {
+      "id": "example-by-speed-limit",
+      "category": "example",
+      "text": "Q: Collisions by speed limit? SQL: SELECT speed_limit, count(*) AS n FROM collisions WHERE speed_limit NOT IN (-1, 99) GROUP BY 1 ORDER BY 1"
+    }
+  ]
+}

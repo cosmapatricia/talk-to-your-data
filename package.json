@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "prepare-data": "node scripts/prepare-data.mjs"
+    "prepare-data": "node scripts/prepare-data.mjs",
+    "verify-golden": "node scripts/verify-golden.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.29.0"

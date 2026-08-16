@@ -1,0 +1,266 @@
+{
+  "generated_at": "2026-08-16T09:11:15.218Z",
+  "table": "collisions",
+  "results": {
+    "fatal-count": {
+      "kind": "exact",
+      "columns": [
+        "fatal_collisions"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "fatal_collisions": 1453
+        }
+      ]
+    },
+    "fog-serious-or-worse": {
+      "kind": "exact",
+      "columns": [
+        "n"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "n": 110
+        }
+      ]
+    },
+    "collisions-by-month": {
+      "kind": "exact",
+      "columns": [
+        "month",
+        "collisions"
+      ],
+      "row_count": 12,
+      "rows": [
+        {
+          "month": 1,
+          "collisions": 8163
+        },
+        {
+          "month": 2,
+          "collisions": 7155
+        },
+        {
+          "month": 3,
+          "collisions": 8451
+        },
+        {
+          "month": 4,
+          "collisions": 8315
+        },
+        {
+          "month": 5,
+          "collisions": 8849
+        },
+        {
+          "month": 6,
+          "collisions": 8725
+        },
+        {
+          "month": 7,
+          "collisions": 8762
+        },
+        {
+          "month": 8,
+          "collisions": 8318
+        },
+        {
+          "month": 9,
+          "collisions": 8581
+        },
+        {
+          "month": 10,
+          "collisions": 8613
+        },
+        {
+          "month": 11,
+          "collisions": 9188
+        },
+        {
+          "month": 12,
+          "collisions": 8405
+        }
+      ]
+    },
+    "wet-vs-dry": {
+      "kind": "exact",
+      "columns": [
+        "wet_or_damp",
+        "dry"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "wet_or_damp": 22312,
+          "dry": 75679
+        }
+      ]
+    },
+    "avg-casualties-by-severity": {
+      "kind": "exact",
+      "columns": [
+        "collision_severity",
+        "avg_casualties"
+      ],
+      "row_count": 3,
+      "rows": [
+        {
+          "collision_severity": 1,
+          "avg_casualties": 1.6366
+        },
+        {
+          "collision_severity": 2,
+          "avg_casualties": 1.3422
+        },
+        {
+          "collision_severity": 3,
+          "avg_casualties": 1.2245
+        }
+      ]
+    },
+    "collisions-by-day-of-week": {
+      "kind": "exact",
+      "columns": [
+        "day_of_week",
+        "n"
+      ],
+      "row_count": 7,
+      "rows": [
+        {
+          "day_of_week": 1,
+          "n": 11197
+        },
+        {
+          "day_of_week": 2,
+          "n": 14309
+        },
+        {
+          "day_of_week": 3,
+          "n": 14880
+        },
+        {
+          "day_of_week": 4,
+          "n": 15369
+        },
+        {
+          "day_of_week": 5,
+          "n": 15304
+        },
+        {
+          "day_of_week": 6,
+          "n": 16811
+        },
+        {
+          "day_of_week": 7,
+          "n": 13655
+        }
+      ]
+    },
+    "urban-fatal-share": {
+      "kind": "exact",
+      "columns": [
+        "fatal_share"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "fatal_share": 0.007759
+        }
+      ]
+    },
+    "collisions-by-speed-limit": {
+      "kind": "exact",
+      "columns": [
+        "speed_limit",
+        "n"
+      ],
+      "row_count": 6,
+      "rows": [
+        {
+          "speed_limit": 20,
+          "n": 20045
+        },
+        {
+          "speed_limit": 30,
+          "n": 49673
+        },
+        {
+          "speed_limit": 40,
+          "n": 8886
+        },
+        {
+          "speed_limit": 50,
+          "n": 4612
+        },
+        {
+          "speed_limit": 60,
+          "n": 12709
+        },
+        {
+          "speed_limit": 70,
+          "n": 5600
+        }
+      ]
+    },
+    "darkness-count": {
+      "kind": "exact",
+      "columns": [
+        "n"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "n": 28695
+        }
+      ]
+    },
+    "weather-with-most-collisions": {
+      "kind": "fuzzy",
+      "columns": [
+        "weather_conditions",
+        "n"
+      ],
+      "row_count": 9,
+      "rows": [
+        {
+          "weather_conditions": 1,
+          "n": 83405
+        },
+        {
+          "weather_conditions": 2,
+          "n": 10230
+        },
+        {
+          "weather_conditions": 8,
+          "n": 3314
+        },
+        {
+          "weather_conditions": 9,
+          "n": 2385
+        },
+        {
+          "weather_conditions": 5,
+          "n": 880
+        },
+        {
+          "weather_conditions": 4,
+          "n": 715
+        },
+        {
+          "weather_conditions": 7,
+          "n": 342
+        },
+        {
+          "weather_conditions": 3,
+          "n": 235
+        },
+        {
+          "weather_conditions": 6,
+          "n": 19
+        }
+      ]
+    }
+  }
+}
