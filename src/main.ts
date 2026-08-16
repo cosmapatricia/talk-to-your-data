@@ -1,6 +1,7 @@
 import { query } from './db';
 import { validateSql } from './validate';
 import schema from '../shared/schema.json';
+import codes from '../shared/codes.json';
 import type { GenerateResult } from '../shared/types';
 
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -24,7 +25,22 @@ function clearResults(): void {
   resultsEl.innerHTML = '';
 }
 
-// Render rows as an HTML table. BIGINT arrives as JS BigInt, so stringify safely.
+// Coded-column decode maps (integer code -> label) from the DfT guide. Display layer
+// only: the SQL still uses the integer codes, the table reads in English.
+const codeMaps = codes.columns as Record<string, Record<string, string>>;
+
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>]/g, (c) => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : '&gt;'));
+
+// A cell's text: decode a coded column to "code — label"; BIGINT arrives as JS BigInt so
+// stringify safely; escape because we build the table via innerHTML.
+function cellText(col: string, value: unknown): string {
+  if (value === null || value === undefined) return '';
+  const raw = String(value);
+  const label = codeMaps[col]?.[raw];
+  return escapeHtml(label ? `${raw} — ${label}` : raw);
+}
+
 function renderTable(rows: Record<string, unknown>[]): void {
   clearResults();
   if (rows.length === 0) {
@@ -32,11 +48,10 @@ function renderTable(rows: Record<string, unknown>[]): void {
     return;
   }
   const cols = Object.keys(rows[0]);
-  const cell = (v: unknown) => (v === null || v === undefined ? '' : String(v));
-  const thead = `<tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>`;
+  const thead = `<tr>${cols.map((c) => `<th>${escapeHtml(c)}</th>`).join('')}</tr>`;
   const tbody = rows
     .slice(0, 500)
-    .map((r) => `<tr>${cols.map((c) => `<td>${cell(r[c])}</td>`).join('')}</tr>`)
+    .map((r) => `<tr>${cols.map((c) => `<td>${cellText(c, r[c])}</td>`).join('')}</tr>`)
     .join('');
   const note = rows.length > 500 ? `<div id="empty">Showing first 500 of ${rows.length} rows.</div>` : '';
   resultsEl.innerHTML = `<table>${thead}${tbody}</table>${note}`;

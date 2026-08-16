@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
     "prepare-data": "node scripts/prepare-data.mjs",
+    "build-codes": "node scripts/build-codes.mjs",
     "verify-golden": "node scripts/verify-golden.mjs"
   },
   "dependencies": {

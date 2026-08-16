@@ -45,6 +45,11 @@ _Last updated: 2026-08-16._
   **Validated offline:** typecheck (browser + worker), `vite build`, and
   `wrangler deploy --dry-run` (AI binding recognized) all pass. **NOT yet run live** —
   the Workers AI call needs `wrangler login`; user to smoke-test.
+- **Coded-value display** — `shared/codes.json` (29 columns, 1,390 codes, from the DfT
+  guide via `npm run build-codes`). The results table decodes coded columns to
+  `code — label` (e.g. `1 — Fine no high winds`) at render time; the generated SQL stays
+  in raw integer codes (clean + editable). Resolves the coded-value known-limitation from
+  PLAN.md via option (c), display-layer decode. HTML-escaped (table built via innerHTML).
 - **Git** — plan → data pipeline → browser loader → snippets + golden set → Worker/loop,
   all committed and pushed to `origin/main`. Pushing works from the agent shell (token in
   `wincred`).
