@@ -8,17 +8,26 @@ the browser via DuckDB-WASM. **The LLM never sees a row of data.**
 ## Prerequisites
 
 - **Node 18+** and npm.
-- A **Cloudflare account** with `wrangler` — the SQL generator uses the Workers AI
-  binding, so `wrangler dev` needs to be authenticated (`wrangler login`, or a
-  `CLOUDFLARE_API_TOKEN`). No other API key is required.
+- A **free Cloudflare account** — the SQL generator uses the Workers AI binding, so the
+  Worker must be authenticated. No API key or paid plan is required.
+
+`wrangler` is a local dev dependency (not installed globally), so always call it with
+`npx` — a bare `wrangler ...` will report "not recognized". Authenticate once:
+
+```bash
+npm install
+npx wrangler login        # opens a browser to authorize; or set CLOUDFLARE_API_TOKEN
+```
+
+> First time only: Cloudflare may ask you to confirm your account email and to register a
+> free `workers.dev` subdomain (dashboard → **Workers & Pages**) before `wrangler dev`
+> will start. Both are one-time.
 
 ## Run it (two terminals)
 
 ```bash
-npm install
-
-# Terminal 1 — the Worker (SQL generation via Workers AI). Needs Cloudflare auth.
-npm run worker      # wrangler dev, serves the API on http://127.0.0.1:8787
+# Terminal 1 — the Worker (SQL generation via Workers AI). Needs the login above.
+npm run worker      # = npx wrangler dev, serves the API on http://127.0.0.1:8787
 
 # Terminal 2 — the app
 npm run dev         # vite, serves the page on http://localhost:5173
