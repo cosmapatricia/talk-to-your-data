@@ -26,12 +26,16 @@ _Last updated: 2026-08-16._
   DfT data guide (severity/weather/road-surface/light/day-of-week code maps, the
   `-1` missing-sentinel convention, speed_limit-is-numeric-mph, date handling, KPI
   definitions, worked question→SQL examples). Inlined wholesale into the prompt.
-- **Golden set** — `shared/golden.json`: 10 questions with hand-authored reference SQL
-  (the oracle), 9 `exact` + 1 `fuzzy`; most require a code map, so they double as the
-  retrieval context-on/off A/B. `scripts/verify-golden.mjs` (`npm run verify-golden`)
-  runs them against the committed Parquet and writes `shared/golden-expected.json`.
-  All 10 run clean (fatal=1,453; fog-serious-or-worse=110; the fuzzy weather one shows
-  raw counts crown "Fine" — the count-vs-danger caveat, with a real number).
+- **Golden set** — `shared/golden.json`: 12 questions with hand-authored reference SQL
+  (the oracle), 11 `exact` + 1 `fuzzy`, each tagged `has_example` (4 true / 8 false).
+  `has_example:false` questions have no near-verbatim worked example, so they force the
+  model to compose SQL from the code maps — the stronger arm of the context-on/off A/B.
+  `scripts/verify-golden.mjs` (`npm run verify-golden`) runs them against the committed
+  Parquet and writes `shared/golden-expected.json`. All 12 run clean. Live-tested on the
+  8b: it composed rain (`weather IN (2,5)` = 11,110) and fatal-wet-darkness (three maps =
+  221) correctly with no example to copy — retrieval doing real semantic work, not just
+  copying. Real known-failures will need harder cases (ambiguity, unmentioned sentinels,
+  multi-step).
 - **Worker + loop** — `worker/`: `POST /api/generate-sql` assembles `schema.json` +
   inlined `snippets.json` + question, calls Workers AI (`@cf/meta/llama-3.1-8b-instruct`)
   behind a `SqlProvider` seam, returns `{ sql, rationale }`. Frontend evolved into the

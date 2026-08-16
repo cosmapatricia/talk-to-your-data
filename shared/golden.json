@@ -1,5 +1,5 @@
 {
-  "_comment": "Golden set for verification. Each question has hand-authored reference SQL that IS the oracle: the harness runs the model's SQL and this reference SQL against DuckDB and compares result sets. 'kind' controls the comparison. Expected results are captured in golden-expected.json by scripts/verify-golden.mjs. Most questions require a code map the model only gets from the snippets, so they double as the retrieval context-on/off A/B.",
+  "_comment": "Golden set for verification. Each question has hand-authored reference SQL that IS the oracle: the harness runs the model's SQL and this reference SQL against DuckDB and compares result sets. 'kind' controls the comparison. 'has_example' records whether a near-verbatim worked example exists in shared/snippets.json: has_example=true questions can be answered by copying an example, has_example=false questions force the model to compose SQL from the code maps alone. The has_example=false set is the stronger test of whether retrieval of dataset semantics (not example-copying) improves the SQL. Expected results are captured in golden-expected.json by scripts/verify-golden.mjs.",
   "table": "collisions",
   "kinds": {
     "exact": "result set must equal the reference exactly",
@@ -12,13 +12,15 @@
       "question": "How many fatal collisions were there?",
       "reference_sql": "SELECT count(*) AS fatal_collisions FROM collisions WHERE collision_severity = 1",
       "kind": "exact",
+      "has_example": true,
       "notes": "severity 1 = Fatal. Tests severity direction (lower = worse)."
     },
     {
       "id": "fog-serious-or-worse",
       "question": "How many serious or fatal collisions happened in fog or mist?",
-      "reference_sql": "SELECT count(*) AS n FROM collisions WHERE collision_severity <= 2 AND weather_conditions = 7",
+      "reference_sql": "SELECT count(*) AS collisions FROM collisions WHERE collision_severity <= 2 AND weather_conditions = 7",
       "kind": "exact",
+      "has_example": true,
       "notes": "severity <= 2 = serious-or-fatal; weather 7 = fog or mist. Two code maps at once."
     },
     {
@@ -26,6 +28,7 @@
       "question": "How many collisions occurred in each month?",
       "reference_sql": "SELECT month(\"date\") AS month, count(*) AS collisions FROM collisions GROUP BY 1 ORDER BY 1",
       "kind": "exact",
+      "has_example": true,
       "notes": "Date handling: extract month from a DATE column. 12 rows."
     },
     {
@@ -33,20 +36,23 @@
       "question": "How many collisions happened on wet or damp roads versus dry roads?",
       "reference_sql": "SELECT count(*) FILTER (WHERE road_surface_conditions = 2) AS wet_or_damp, count(*) FILTER (WHERE road_surface_conditions = 1) AS dry FROM collisions",
       "kind": "exact",
-      "notes": "road_surface 2 = wet or damp, 1 = dry."
+      "has_example": false,
+      "notes": "road_surface 2 = wet or damp, 1 = dry. Composition from the road-surface code map."
     },
     {
       "id": "avg-casualties-by-severity",
       "question": "What is the average number of casualties per collision, by severity?",
       "reference_sql": "SELECT collision_severity, round(avg(number_of_casualties), 4) AS avg_casualties FROM collisions GROUP BY 1 ORDER BY 1",
       "kind": "exact",
+      "has_example": false,
       "notes": "number_of_casualties is a plain count, not a code. 3 rows (severity 1,2,3)."
     },
     {
       "id": "collisions-by-day-of-week",
       "question": "How many collisions happened on each day of the week?",
-      "reference_sql": "SELECT day_of_week, count(*) AS n FROM collisions GROUP BY 1 ORDER BY 1",
+      "reference_sql": "SELECT day_of_week, count(*) AS collisions FROM collisions GROUP BY 1 ORDER BY 1",
       "kind": "exact",
+      "has_example": false,
       "notes": "day_of_week 1 = Sunday ... 7 = Saturday. The interpretation trap (1 != Monday) is on labelling, not the SQL."
     },
     {
@@ -54,27 +60,47 @@
       "question": "What share of collisions in urban areas were fatal?",
       "reference_sql": "SELECT round(count(*) FILTER (WHERE collision_severity = 1) * 1.0 / count(*), 6) AS fatal_share FROM collisions WHERE urban_or_rural_area = 1",
       "kind": "exact",
-      "notes": "urban = 1, fatal = 1. A rate with a filtered denominator."
+      "has_example": false,
+      "notes": "urban = 1, fatal = 1. A rate with a filtered denominator; composition from two maps."
     },
     {
       "id": "collisions-by-speed-limit",
       "question": "How many collisions happened at each speed limit?",
-      "reference_sql": "SELECT speed_limit, count(*) AS n FROM collisions WHERE speed_limit NOT IN (-1, 99) GROUP BY 1 ORDER BY 1",
+      "reference_sql": "SELECT speed_limit, count(*) AS collisions FROM collisions WHERE speed_limit NOT IN (-1, 99) GROUP BY 1 ORDER BY 1",
       "kind": "exact",
+      "has_example": true,
       "notes": "speed_limit is numeric mph (20..70); -1 and 99 are sentinels that must be excluded. Strong semantic trap."
     },
     {
       "id": "darkness-count",
       "question": "How many collisions happened in darkness?",
-      "reference_sql": "SELECT count(*) AS n FROM collisions WHERE light_conditions IN (4, 5, 6, 7)",
+      "reference_sql": "SELECT count(*) AS collisions FROM collisions WHERE light_conditions IN (4, 5, 6, 7)",
       "kind": "exact",
-      "notes": "Darkness spans four codes (4-7); daylight is 1. A single-code guess is wrong."
+      "has_example": false,
+      "notes": "Darkness spans four codes (4-7); daylight is 1. A single-code guess is wrong. Composition from the light-conditions map."
+    },
+    {
+      "id": "collisions-in-rain",
+      "question": "How many collisions happened in the rain?",
+      "reference_sql": "SELECT count(*) AS collisions FROM collisions WHERE weather_conditions IN (2, 5)",
+      "kind": "exact",
+      "has_example": false,
+      "notes": "Composition, no worked example. 'Rain' spans two weather codes: 2 = raining no high winds, 5 = raining + high winds. Tests reasoning from the code map rather than example-copying."
+    },
+    {
+      "id": "fatal-wet-darkness",
+      "question": "How many fatal collisions happened on wet roads in darkness?",
+      "reference_sql": "SELECT count(*) AS fatal_collisions FROM collisions WHERE collision_severity = 1 AND road_surface_conditions = 2 AND light_conditions IN (4, 5, 6, 7)",
+      "kind": "exact",
+      "has_example": false,
+      "notes": "Composition of three code maps (severity, road surface, light) with no worked example. The model may write the darkness clause as an OR-chain; that is equivalent to IN (4,5,6,7)."
     },
     {
       "id": "weather-with-most-collisions",
       "question": "Which weather condition had the most collisions?",
-      "reference_sql": "SELECT weather_conditions, count(*) AS n FROM collisions WHERE weather_conditions <> -1 GROUP BY 1 ORDER BY n DESC",
+      "reference_sql": "SELECT weather_conditions, count(*) AS collisions FROM collisions WHERE weather_conditions <> -1 GROUP BY 1 ORDER BY collisions DESC",
       "kind": "fuzzy",
+      "has_example": false,
       "notes": "No single ground-truth phrasing. Raw counts will pick 'Fine no high winds' (code 1) simply because most driving is in fine weather - which is NOT the same as 'most dangerous'. Judged on shape + the top row; the count-vs-rate subtlety is a known-limitations note."
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T09:11:15.218Z",
+  "generated_at": "2026-08-16T11:27:46.873Z",
   "table": "collisions",
   "results": {
     "fatal-count": {
@@ -17,12 +17,12 @@
     "fog-serious-or-worse": {
       "kind": "exact",
       "columns": [
-        "n"
+        "collisions"
       ],
       "row_count": 1,
       "rows": [
         {
-          "n": 110
+          "collisions": 110
         }
       ]
     },
@@ -124,37 +124,37 @@
       "kind": "exact",
       "columns": [
         "day_of_week",
-        "n"
+        "collisions"
       ],
       "row_count": 7,
       "rows": [
         {
           "day_of_week": 1,
-          "n": 11197
+          "collisions": 11197
         },
         {
           "day_of_week": 2,
-          "n": 14309
+          "collisions": 14309
         },
         {
           "day_of_week": 3,
-          "n": 14880
+          "collisions": 14880
         },
         {
           "day_of_week": 4,
-          "n": 15369
+          "collisions": 15369
         },
         {
           "day_of_week": 5,
-          "n": 15304
+          "collisions": 15304
         },
         {
           "day_of_week": 6,
-          "n": 16811
+          "collisions": 16811
         },
         {
           "day_of_week": 7,
-          "n": 13655
+          "collisions": 13655
         }
       ]
     },
@@ -174,45 +174,69 @@
       "kind": "exact",
       "columns": [
         "speed_limit",
-        "n"
+        "collisions"
       ],
       "row_count": 6,
       "rows": [
         {
           "speed_limit": 20,
-          "n": 20045
+          "collisions": 20045
         },
         {
           "speed_limit": 30,
-          "n": 49673
+          "collisions": 49673
         },
         {
           "speed_limit": 40,
-          "n": 8886
+          "collisions": 8886
         },
         {
           "speed_limit": 50,
-          "n": 4612
+          "collisions": 4612
         },
         {
           "speed_limit": 60,
-          "n": 12709
+          "collisions": 12709
         },
         {
           "speed_limit": 70,
-          "n": 5600
+          "collisions": 5600
         }
       ]
     },
     "darkness-count": {
       "kind": "exact",
       "columns": [
-        "n"
+        "collisions"
       ],
       "row_count": 1,
       "rows": [
         {
-          "n": 28695
+          "collisions": 28695
+        }
+      ]
+    },
+    "collisions-in-rain": {
+      "kind": "exact",
+      "columns": [
+        "collisions"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "collisions": 11110
+        }
+      ]
+    },
+    "fatal-wet-darkness": {
+      "kind": "exact",
+      "columns": [
+        "fatal_collisions"
+      ],
+      "row_count": 1,
+      "rows": [
+        {
+          "fatal_collisions": 221
         }
       ]
     },
@@ -220,45 +244,45 @@
       "kind": "fuzzy",
       "columns": [
         "weather_conditions",
-        "n"
+        "collisions"
       ],
       "row_count": 9,
       "rows": [
         {
           "weather_conditions": 1,
-          "n": 83405
+          "collisions": 83405
         },
         {
           "weather_conditions": 2,
-          "n": 10230
+          "collisions": 10230
         },
         {
           "weather_conditions": 8,
-          "n": 3314
+          "collisions": 3314
         },
         {
           "weather_conditions": 9,
-          "n": 2385
+          "collisions": 2385
         },
         {
           "weather_conditions": 5,
-          "n": 880
+          "collisions": 880
         },
         {
           "weather_conditions": 4,
-          "n": 715
+          "collisions": 715
         },
         {
           "weather_conditions": 7,
-          "n": 342
+          "collisions": 342
         },
         {
           "weather_conditions": 3,
-          "n": 235
+          "collisions": 235
         },
         {
           "weather_conditions": 6,
-          "n": 19
+          "collisions": 19
         }
       ]
     }
