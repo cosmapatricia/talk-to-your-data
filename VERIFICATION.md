@@ -97,7 +97,10 @@ them fuzzy rather than pretend a single answer exists.
 The guard (`src/validate.ts`) is defense-in-depth: DuckDB's own parser
 (`json_serialize_sql`, which serializes **only** SELECT statements) is the load-bearing
 check, plus an AST walk that rejects file/network functions by name. `scripts/attack-validator.mjs`
-(`npm run attack-validator`) runs **31 adversarial cases; all match expectation.**
+(`npm run attack-validator`) runs **31 adversarial cases; all match expectation.** Confirmed on
+the real browser path too: `DROP TABLE collisions` is blocked with a readable message and a
+normal query runs — so `json_serialize_sql` is available in DuckDB-WASM and the guard is not
+Node-only.
 
 | Attack class | Example | Result | Caught by |
 | --- | --- | --- | --- |

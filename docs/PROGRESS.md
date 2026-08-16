@@ -57,8 +57,8 @@ _Last updated: 2026-08-16._
   nested). Wired into Run via `serializeSql` in `db.ts`. `scripts/attack-validator.mjs`
   (`npm run attack-validator`) runs 31 adversarial cases — all match expectation. Backstop
   is the read-only WASM sandbox (no httpfs; VFS holds only the registered Parquet).
-  Live in-browser test still pending (needs `json_serialize_sql` in DuckDB-WASM — verify
-  on next run).
+  Confirmed in-browser: `DROP TABLE collisions` blocked with a readable message, normal query
+  runs — so `json_serialize_sql` is available in DuckDB-WASM (guard runs on the real path).
 - **Golden harness** — `scripts/golden-harness.mjs` (`npm run golden-harness`): every question
   through the LIVE Worker, model SQL vs reference, context-on vs context-off; writes
   `shared/golden-results.json`, prints a Markdown table. Live snapshot: context-on **10/11**,
@@ -71,15 +71,13 @@ _Last updated: 2026-08-16._
   coded-value decode → validator → golden harness + VERIFICATION, all committed and pushed to
   `origin/main`. Pushing works from the agent shell (token in `wincred`).
 
-## Next
+## Next (polish only — feature-complete)
 
-1. **Verify the validator in-browser** — `json_serialize_sql` works in Node DuckDB (the attack
-   suite and harness prove the logic); confirm it exists in DuckDB-WASM by running a blocked
-   query (`DROP TABLE collisions`) and a legit one in the browser. Bundled in most builds;
-   expected to work.
-2. **Polish for submission** — re-run `npm run golden-harness` for a fresh snapshot if wanted;
-   time a clean clone to running < 10 min; final read-through of PLAN / README / VERIFICATION /
-   AI-USAGE. Optionally add a guard/known-failure note for cross-year "trend" questions.
+1. **Time a clean clone to running < 10 min** — the one unmet acceptance check; npm install +
+   wasm download is the variable.
+2. **Final read-through** of PLAN / README / VERIFICATION / AI-USAGE; optionally re-run
+   `npm run golden-harness` for a fresh snapshot, and add a known-failure note for cross-year
+   "trend" questions (single-year data).
 
 ## Locked decisions (see PLAN.md for the why)
 
