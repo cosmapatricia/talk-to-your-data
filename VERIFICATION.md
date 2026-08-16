@@ -30,22 +30,47 @@ All 12 run clean. Reference results:
 `shared/snippets.json`. The 8 `has_example: false` questions force the model to *compose*
 SQL from the code maps rather than copy an example — the stronger arm of the A/B.
 
-**Manual live results (8b, `@cf/meta/llama-3.1-8b-instruct-fast`)** — pending the automated
-harness, these were checked by hand and all matched the reference:
+**Golden harness — live run** (`npm run golden-harness`, model `@cf/meta/llama-3.1-8b-instruct-fast`).
+Runs every question through the live Worker and compares to the reference, context-on vs
+context-off. The model is non-deterministic, so this is a snapshot; re-run for a fresh one.
 
-- `fog-serious-or-worse` → `... collision_severity <= 2 AND weather_conditions = 7` = 110 ✓
-- `collisions-by-speed-limit` → correct, including the `NOT IN (-1, 99)` sentinel exclusion ✓
-- `collisions-in-rain` → `weather_conditions IN (2, 5)` = 11,110 ✓ (no worked example; composed from the weather map)
-- `fatal-wet-darkness` → three maps combined = 221 ✓ (wrote darkness as an OR-chain, equivalent to `IN (4,5,6,7)`)
-- `darkness-count` → `light_conditions IN (4,5,6,7)` = 28,695 ✓
+| id | kind | has_example | context-on | context-off |
+| --- | --- | --- | --- | --- |
+| fatal-count | exact | yes | PASS | FAIL |
+| fog-serious-or-worse | exact | yes | PASS | FAIL |
+| collisions-by-month | exact | yes | PASS | SQL-ERR |
+| wet-vs-dry | exact | no | FAIL | FAIL |
+| avg-casualties-by-severity | exact | no | PASS | FAIL |
+| collisions-by-day-of-week | exact | no | PASS | SQL-ERR |
+| urban-fatal-share | exact | no | PASS | FAIL |
+| collisions-by-speed-limit | exact | yes | PASS | PASS |
+| darkness-count | exact | no | PASS | FAIL |
+| collisions-in-rain | exact | no | PASS | FAIL |
+| fatal-wet-darkness | exact | no | PASS | FAIL |
+| weather-with-most-collisions | fuzzy | no | FUZZY | FUZZY |
 
-The model composed correctly even on `has_example: false` questions — evidence that retrieval
-of the **code maps** (not just example-copying) improves the SQL.
+**Retrieval A/B (11 graded, fuzzy excluded):** context-on **10/11 PASS**, context-off
+**1/11 PASS**; retrieval improved **9** questions. That is "retrieval demonstrably improves the
+SQL over no context" in one number — with the code-map context the model composes correct SQL
+almost everywhere; strip the context and it fails almost everywhere, because the codes appear
+nowhere in the schema. (The one question that passes without context, `collisions-by-speed-limit`,
+is the one where the values are literal mph rather than an arbitrary code.)
 
-**Retrieval A/B _(pending automation)_.** The Worker accepts a `withContext` flag; the
-harness will run every golden question with context and with bare schema only. Expectation:
-the no-context arm fails or guesses on anything involving a code (severity/weather/light/…),
-because those codes appear nowhere in the schema.
+Two concrete findings from this run:
+
+- **`wet-vs-dry` fails context-on — a semantic case, not a bug.** The model answered a *broader*
+  question: `SELECT road_surface_conditions, count(*) ... GROUP BY 1` returns all five surface
+  categories rather than the two-number wet-vs-dry comparison the reference isolates. The wet and
+  dry counts are present, but the shape differs, so strict `exact` grading marks it FAIL. Right
+  data, slightly broader question — see §4.6 on structure-sensitive grading.
+- **Context-off breaks on `collision_index` — vivid A/B evidence.** With no context the model
+  invented `WHERE collision_index != -1`, misapplying the "-1 = missing" sentinel pattern to the
+  collision *identifier* (a mixed alphanumeric VARCHAR like `2025440199184`); DuckDB then errors
+  converting the string to an integer. The snippets tell the model `collision_index` is an id, not
+  a coded column — without them it misapplies the rule and produces invalid SQL. This also
+  vindicates the forced-VARCHAR decision in the data pipeline.
+
+Full per-question detail (including the model SQL for each arm) is in `shared/golden-results.json`.
 
 ## 2. Semantic correctness — right table, wrong question
 
@@ -136,3 +161,12 @@ At least three things that are broken, fragile, or wrong, each with a diagnosis.
 5. **Fuzzy questions have no single ground truth (§2).** "Most collisions" ≠ "most dangerous";
    the honest answer is to grade on shape and flag the interpretation gap rather than assert one
    result is correct.
+
+6. **Exact-match grading is structure-sensitive.** A model answer that is correct but shaped
+   differently than the reference is marked FAIL by exact result-set comparison — e.g.
+   `wet-vs-dry`, where the model returned all five surface categories as rows instead of the
+   reference's two FILTER columns (§1). _Diagnosis:_ strict equality can't distinguish "wrong"
+   from "differently shaped but valid." _Mitigation:_ the `shape`/`fuzzy` kinds exist for
+   questions with no single canonical form; exact FAILs are treated as prompts for manual review,
+   not automatic verdicts. A future harness could compare on a canonicalised value set rather
+   than row/column structure.

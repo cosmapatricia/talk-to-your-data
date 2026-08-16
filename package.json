@@ -12,7 +12,8 @@
     "prepare-data": "node scripts/prepare-data.mjs",
     "build-codes": "node scripts/build-codes.mjs",
     "verify-golden": "node scripts/verify-golden.mjs",
-    "attack-validator": "node scripts/attack-validator.mjs"
+    "attack-validator": "node scripts/attack-validator.mjs",
+    "golden-harness": "node scripts/golden-harness.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.29.0"

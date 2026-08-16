@@ -59,22 +59,27 @@ _Last updated: 2026-08-16._
   is the read-only WASM sandbox (no httpfs; VFS holds only the registered Parquet).
   Live in-browser test still pending (needs `json_serialize_sql` in DuckDB-WASM — verify
   on next run).
+- **Golden harness** — `scripts/golden-harness.mjs` (`npm run golden-harness`): every question
+  through the LIVE Worker, model SQL vs reference, context-on vs context-off; writes
+  `shared/golden-results.json`, prints a Markdown table. Live snapshot: context-on **10/11**,
+  context-off **1/11**, retrieval improved **9**. Two findings: `wet-vs-dry` "fails" on a broader
+  answer (semantic, not a bug); context-off invents `collision_index != -1` and SQL-errors (A/B
+  proof). Pasted into `VERIFICATION.md` §1.
+- **VERIFICATION.md** — drafted: golden table + A/B, semantic correctness, 31-case validator
+  bypass table, 6 known failures with diagnoses.
 - **Git** — plan → data pipeline → loader → snippets + golden set → Worker/loop →
-  coded-value decode → validator, all committed and pushed to `origin/main`. Pushing works
-  from the agent shell (token in `wincred`).
+  coded-value decode → validator → golden harness + VERIFICATION, all committed and pushed to
+  `origin/main`. Pushing works from the agent shell (token in `wincred`).
 
 ## Next
 
-1. **Verify the validator in-browser** — confirm `json_serialize_sql` exists in DuckDB-WASM
-   (run a blocked query like `DROP TABLE collisions` and a legit one). If the function is
-   missing in WASM, adapt (it's bundled in most builds; expected to work).
-2. **Full golden harness** — compare the model's SQL result to the reference results in
-   `golden-expected.json`, context-on vs context-off (the Worker already accepts
-   `withContext`); produce a pass/fail table.
-3. **Assemble `VERIFICATION.md`** — the golden pass/fail table; the validator bypass table
-   (`npm run attack-validator`) with the honest denylist-gap + sandbox-backstop note; the
-   semantic-correctness write-up (fuzzy weather count-vs-danger; the -1/9 divergence);
-   and >=3 known failures with diagnoses.
+1. **Verify the validator in-browser** — `json_serialize_sql` works in Node DuckDB (the attack
+   suite and harness prove the logic); confirm it exists in DuckDB-WASM by running a blocked
+   query (`DROP TABLE collisions`) and a legit one in the browser. Bundled in most builds;
+   expected to work.
+2. **Polish for submission** — re-run `npm run golden-harness` for a fresh snapshot if wanted;
+   time a clean clone to running < 10 min; final read-through of PLAN / README / VERIFICATION /
+   AI-USAGE. Optionally add a guard/known-failure note for cross-year "trend" questions.
 
 ## Locked decisions (see PLAN.md for the why)
 
