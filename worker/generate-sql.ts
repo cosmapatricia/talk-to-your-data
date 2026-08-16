@@ -54,16 +54,30 @@ function coerceResult(res: unknown): GenerateResult {
   }
 
   const text = typeof payload === 'string' ? payload : JSON.stringify(payload ?? res);
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error(`no JSON object in model response: ${text.slice(0, 200)}`);
-  let obj: Record<string, unknown>;
-  try {
-    obj = JSON.parse(match[0]) as Record<string, unknown>;
-  } catch {
-    throw new Error(`malformed JSON in model response: ${text.slice(0, 200)}`);
+
+  // Preferred: a complete JSON object somewhere in the text.
+  const braces = text.match(/\{[\s\S]*\}/);
+  if (braces) {
+    try {
+      const obj = JSON.parse(braces[0]) as Record<string, unknown>;
+      if (typeof obj.sql === 'string') return finalize(obj.sql, obj.rationale);
+    } catch {
+      // fall through — the JSON was likely truncated (a cut-off rationale is common)
+    }
   }
-  if (typeof obj.sql !== 'string') throw new Error(`no "sql" field in model response: ${text.slice(0, 200)}`);
-  return finalize(obj.sql, obj.rationale);
+
+  // Fallback: the response was cut off mid-JSON but the sql field itself is complete.
+  // Pull it out directly; re-parsing as a JSON string handles any escapes.
+  const sqlField = text.match(/"sql"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if (sqlField) {
+    const rationaleField = text.match(/"rationale"\s*:\s*"((?:\\.|[^"\\])*)"/);
+    return finalize(
+      JSON.parse(`"${sqlField[1]}"`),
+      rationaleField ? JSON.parse(`"${rationaleField[1]}"`) : '',
+    );
+  }
+
+  throw new Error(`could not extract SQL from model response: ${text.slice(0, 200)}`);
 }
 
 export interface Env {
