@@ -71,13 +71,18 @@ _Last updated: 2026-08-16._
   coded-value decode → validator → golden harness + VERIFICATION, all committed and pushed to
   `origin/main`. Pushing works from the agent shell (token in `wincred`).
 
-## Next (polish only — feature-complete)
+## Status: feature-complete, all acceptance checks met
 
-1. **Time a clean clone to running < 10 min** — the one unmet acceptance check; npm install +
-   wasm download is the variable.
-2. **Final read-through** of PLAN / README / VERIFICATION / AI-USAGE; optionally re-run
-   `npm run golden-harness` for a fresh snapshot, and add a known-failure note for cross-year
-   "trend" questions (single-year data).
+- Ask → sensible SQL → rendered table ✓ (live) · DROP + variants blocked with readable message
+  ✓ (live, 31-case suite) · SQL visible/editable/re-runnable ✓ · golden set runs, output in repo
+  ✓ · retrieval improves SQL ✓ (A/B 10/11 vs 1/11) · **clean clone < 10 min ✓** (measured ~22s:
+  clone 4s + install 12s + build 6s from a fresh GitHub clone; `wrangler dev` adds a few s for
+  workerd, browser a few s for the wasm).
+- Deliverables: `PLAN.md` (first commit) · working app + README (setup/bindings/model-id/
+  examples) · `VERIFICATION.md` · `AI-USAGE.md`.
+
+Optional before submitting: final read-through of the four docs; re-run `npm run golden-harness`
+for a fresh snapshot. Cross-year "trend" limitation is logged as known-failure #4.
 
 ## Locked decisions (see PLAN.md for the why)
 
