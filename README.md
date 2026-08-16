@@ -34,8 +34,8 @@ one-line rationale → **Run SQL** runs it in DuckDB-WASM and paints the table.
 ## Bindings, env, model
 
 - **Binding:** `AI` (Workers AI) — declared in `wrangler.jsonc`. No secret to set.
-- **Model ID:** `@cf/meta/llama-3.1-8b-instruct` (in `worker/generate-sql.ts`). It sits
-  behind a `SqlProvider` seam — swapping to a frontier model behind a key is a
+- **Model ID:** `@cf/meta/llama-3.1-8b-instruct-fast` (in `worker/generate-sql.ts`). It
+  sits behind a `SqlProvider` seam — swapping to a frontier model behind a key is a
   one-implementation change.
 
 ## Example questions that work

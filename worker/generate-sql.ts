@@ -18,7 +18,7 @@ export interface SqlProvider {
 // The default: Workers AI, no external key. A small Llama 3.x — deliberately the
 // "weaker writer" from PLAN.md, so retrieval has something to prove and some
 // golden-set failures may be model capability, not pipeline.
-const WORKERS_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const WORKERS_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct-fast';
 
 class WorkersAiProvider implements SqlProvider {
   constructor(private readonly ai: Ai) {}
