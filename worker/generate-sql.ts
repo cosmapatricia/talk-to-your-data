@@ -25,29 +25,45 @@ class WorkersAiProvider implements SqlProvider {
 
   async generate(question: string, context: Snippet[]): Promise<GenerateResult> {
     const messages = buildMessages({ question, schema, snippets: context });
-    const res = (await this.ai.run(WORKERS_AI_MODEL, { messages, max_tokens: 512 })) as {
-      response?: string;
-    };
-    return parseResult(typeof res === 'string' ? res : res.response ?? '');
+    const res = await this.ai.run(WORKERS_AI_MODEL, { messages, max_tokens: 512 });
+    return coerceResult(res);
   }
 }
 
-/** Extracts {sql, rationale} from the model's text, tolerating prose or code fences around the JSON. */
-function parseResult(text: string): GenerateResult {
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('model did not return a JSON object');
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(match[0]);
-  } catch {
-    throw new Error('model returned malformed JSON');
+function finalize(sql: unknown, rationale: unknown): GenerateResult {
+  const s = String(sql).trim();
+  if (!s) throw new Error('model returned empty SQL');
+  return { sql: s, rationale: typeof rationale === 'string' ? rationale.trim() : '' };
+}
+
+/**
+ * Extracts {sql, rationale} from a Workers AI response. Text models vary in shape:
+ * a bare string, `{ response: string }`, `{ response: {...} }`, or the object itself.
+ * Unwrap all of them, then either use an object with `sql` directly or pull the first
+ * JSON object out of the text. Errors carry a snippet so an unexpected shape is visible.
+ */
+function coerceResult(res: unknown): GenerateResult {
+  let payload: unknown = res;
+  if (res && typeof res === 'object' && 'response' in res) {
+    payload = (res as { response: unknown }).response;
   }
-  const obj = parsed as { sql?: unknown; rationale?: unknown };
-  if (typeof obj.sql !== 'string' || !obj.sql.trim()) throw new Error('model returned no SQL');
-  return {
-    sql: obj.sql.trim(),
-    rationale: typeof obj.rationale === 'string' ? obj.rationale.trim() : '',
-  };
+
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const o = payload as Record<string, unknown>;
+    if (typeof o.sql === 'string') return finalize(o.sql, o.rationale);
+  }
+
+  const text = typeof payload === 'string' ? payload : JSON.stringify(payload ?? res);
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error(`no JSON object in model response: ${text.slice(0, 200)}`);
+  let obj: Record<string, unknown>;
+  try {
+    obj = JSON.parse(match[0]) as Record<string, unknown>;
+  } catch {
+    throw new Error(`malformed JSON in model response: ${text.slice(0, 200)}`);
+  }
+  if (typeof obj.sql !== 'string') throw new Error(`no "sql" field in model response: ${text.slice(0, 200)}`);
+  return finalize(obj.sql, obj.rationale);
 }
 
 export interface Env {
