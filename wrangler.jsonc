@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "talk-to-your-data",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-04-01",
+  // Workers AI binding — no external API key. Available in `wrangler dev` when
+  // authenticated (wrangler login / CLOUDFLARE_API_TOKEN); calls proxy to the real
+  // Workers AI. This is the `generateSQL()` provider; see worker/generate-sql.ts.
+  "ai": {
+    "binding": "AI"
+  }
+}

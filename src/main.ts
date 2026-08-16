@@ -1,31 +1,95 @@
 import { query } from './db';
+import { validateSql } from './validate';
 import schema from '../shared/schema.json';
+import type { GenerateResult } from '../shared/types';
 
-const statusEl = document.getElementById('status')!;
-const inputEl = document.getElementById('q') as HTMLInputElement;
-const runEl = document.getElementById('run') as HTMLButtonElement;
-const outEl = document.getElementById('out')!;
+const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
-const collisions = schema.tables.find((t) => t.name === 'collisions');
-const expectedRows = collisions?.row_count ?? 0;
+const statusEl = el('status');
+const questionEl = el<HTMLInputElement>('question');
+const generateEl = el<HTMLButtonElement>('generate');
+const rationaleEl = el('rationale');
+const sqlEl = el<HTMLTextAreaElement>('sql');
+const runEl = el<HTMLButtonElement>('run');
+const msgEl = el('msg');
+const resultsEl = el('results');
 
-// DuckDB returns BIGINT columns as JS BigInt, which JSON.stringify can't serialise.
-function render(value: unknown): string {
-  return JSON.stringify(value, (_k, v) => (typeof v === 'bigint' ? Number(v) : v), 2);
+const expectedRows = schema.tables.find((t) => t.name === 'collisions')?.row_count ?? 0;
+
+function setMsg(text = ''): void {
+  msgEl.textContent = text;
 }
 
-async function run(sql: string): Promise<void> {
-  outEl.textContent = 'Running…';
+function clearResults(): void {
+  resultsEl.innerHTML = '';
+}
+
+// Render rows as an HTML table. BIGINT arrives as JS BigInt, so stringify safely.
+function renderTable(rows: Record<string, unknown>[]): void {
+  clearResults();
+  if (rows.length === 0) {
+    resultsEl.innerHTML = '<div id="empty">No rows.</div>';
+    return;
+  }
+  const cols = Object.keys(rows[0]);
+  const cell = (v: unknown) => (v === null || v === undefined ? '' : String(v));
+  const thead = `<tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>`;
+  const tbody = rows
+    .slice(0, 500)
+    .map((r) => `<tr>${cols.map((c) => `<td>${cell(r[c])}</td>`).join('')}</tr>`)
+    .join('');
+  const note = rows.length > 500 ? `<div id="empty">Showing first 500 of ${rows.length} rows.</div>` : '';
+  resultsEl.innerHTML = `<table>${thead}${tbody}</table>${note}`;
+}
+
+async function onGenerate(): Promise<void> {
+  const question = questionEl.value.trim();
+  if (!question) return;
+  setMsg();
+  rationaleEl.textContent = 'Generating…';
+  generateEl.disabled = true;
   try {
-    outEl.textContent = render(await query(sql));
+    const res = await fetch('/api/generate-sql', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
+    const data = (await res.json()) as GenerateResult & { error?: string };
+    if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`);
+    sqlEl.value = data.sql;
+    rationaleEl.textContent = data.rationale ? `Rationale: ${data.rationale}` : '';
   } catch (err) {
-    outEl.textContent = `Error: ${(err as Error).message}`;
+    rationaleEl.textContent = '';
+    setMsg(`Generation failed: ${(err as Error).message}`);
+  } finally {
+    generateEl.disabled = false;
+  }
+}
+
+async function onRun(): Promise<void> {
+  const sql = sqlEl.value.trim();
+  if (!sql) return;
+  setMsg();
+
+  // Validator seam — currently a placeholder; the real guard slots in here next.
+  const verdict = validateSql(sql);
+  if (!verdict.ok) {
+    clearResults();
+    setMsg(`Blocked by validator: ${verdict.message ?? 'not a read-only query'}`);
+    return;
+  }
+
+  resultsEl.innerHTML = '<div id="empty">Running…</div>';
+  try {
+    renderTable(await query(sql));
+  } catch (err) {
+    clearResults();
+    setMsg(`Query error: ${(err as Error).message}`);
   }
 }
 
 async function main(): Promise<void> {
   try {
-    // Smoke test: the browser must see the same file schema.json describes.
     const rows = await query('SELECT count(*)::INT AS n FROM collisions');
     const n = Number(rows[0].n);
     const match = n === expectedRows ? '✓ matches schema.json' : `✗ expected ${expectedRows}`;
@@ -35,14 +99,15 @@ async function main(): Promise<void> {
     return;
   }
 
-  inputEl.disabled = false;
+  questionEl.disabled = false;
+  generateEl.disabled = false;
   runEl.disabled = false;
-  inputEl.value = 'SELECT collision_severity, count(*) AS n FROM collisions GROUP BY 1 ORDER BY 1';
+  questionEl.value = 'How many serious or fatal collisions happened in fog?';
 
-  const submit = () => run(inputEl.value);
-  runEl.addEventListener('click', submit);
-  inputEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') submit();
+  generateEl.addEventListener('click', onGenerate);
+  runEl.addEventListener('click', onRun);
+  questionEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') onGenerate();
   });
 }
 

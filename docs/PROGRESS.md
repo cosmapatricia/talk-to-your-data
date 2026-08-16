@@ -32,21 +32,29 @@ _Last updated: 2026-08-16._
   runs them against the committed Parquet and writes `shared/golden-expected.json`.
   All 10 run clean (fatal=1,453; fog-serious-or-worse=110; the fuzzy weather one shows
   raw counts crown "Fine" — the count-vs-danger caveat, with a real number).
-- **Git** — plan → data pipeline → browser loader → snippets + golden set, all
-  committed and pushed to `origin/main`. Pushing works from the agent shell (token in
+- **Worker + loop** — `worker/`: `POST /api/generate-sql` assembles `schema.json` +
+  inlined `snippets.json` + question, calls Workers AI (`@cf/meta/llama-3.1-8b-instruct`)
+  behind a `SqlProvider` seam, returns `{ sql, rationale }`. Frontend evolved into the
+  full loop: question → Generate → editable SQL + rationale → (validator seam) → Run →
+  results table, with states. Dev is two processes — `npm run worker` (wrangler, :8787)
+  + `npm run dev` (vite, :5173, proxies /api). README documents it.
+  **Validated offline:** typecheck (browser + worker), `vite build`, and
+  `wrangler deploy --dry-run` (AI binding recognized) all pass. **NOT yet run live** —
+  the Workers AI call needs `wrangler login`; user to smoke-test.
+- **Git** — plan → data pipeline → browser loader → snippets + golden set → Worker/loop,
+  all committed and pushed to `origin/main`. Pushing works from the agent shell (token in
   `wincred`).
 
 ## Next
 
-1. **Worker + `generateSQL()` loop** — Worker endpoint assembles schema snapshot +
-   inlined snippets + question, calls Workers AI (Llama 3.x) behind the `generateSQL()`
-   seam, returns `{ sql, rationale }`; wire question→SQL→table in the browser, with the
-   validator sitting between generate and run.
-2. **Build + attack the validator** — AST/parser SELECT-only guard + sandbox; honest
-   bypass table.
-3. **Full golden harness** — compare the model's SQL result to the reference SQL results
-   in `golden-expected.json`, context-on vs context-off; paste the pass/fail table into
-   `VERIFICATION.md`.
+1. **Smoke-test the live loop** — `wrangler login`, run both dev commands, ask a golden
+   question, confirm sensible SQL + rendered table. (User step — needs Cloudflare auth.)
+2. **Build + attack the validator** — replace the `src/validate.ts` placeholder with the
+   AST/parser SELECT-only guard + banned-function walk; sandbox backstop; honest bypass
+   table. This is the seam already wired between Generate and Run.
+3. **Full golden harness** — compare the model's SQL result to the reference results in
+   `golden-expected.json`, context-on vs context-off (the Worker already accepts
+   `withContext`); paste the pass/fail table into `VERIFICATION.md`.
 
 ## Locked decisions (see PLAN.md for the why)
 
