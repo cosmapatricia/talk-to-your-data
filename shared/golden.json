@@ -101,7 +101,7 @@
       "reference_sql": "SELECT weather_conditions, count(*) AS collisions FROM collisions WHERE weather_conditions <> -1 GROUP BY 1 ORDER BY collisions DESC",
       "kind": "fuzzy",
       "has_example": false,
-      "notes": "No single ground-truth phrasing. Raw counts will pick 'Fine no high winds' (code 1) simply because most driving is in fine weather - which is NOT the same as 'most dangerous'. Judged on shape + the top row; the count-vs-rate subtlety is a known-limitations note."
+      "notes": "No single ground-truth phrasing. Raw counts will pick 'Fine no high winds' (code 1) simply because most driving is in fine weather - which is NOT the same as 'most dangerous'. Judged on shape + the top row; the count-vs-rate subtlety is a known-limitations note. Observed divergence (8b): the model also excluded 9 (Unknown), not just -1, and added LIMIT 1 to return the single top row; the reference drops only -1 and keeps all rows ranked. Both are defensible judgment calls on the same question - exactly why this is tagged fuzzy rather than exact."
     }
   ]
 }
