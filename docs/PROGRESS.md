@@ -50,20 +50,31 @@ _Last updated: 2026-08-16._
   `code — label` (e.g. `1 — Fine no high winds`) at render time; the generated SQL stays
   in raw integer codes (clean + editable). Resolves the coded-value known-limitation from
   PLAN.md via option (c), display-layer decode. HTML-escaped (table built via innerHTML).
-- **Git** — plan → data pipeline → browser loader → snippets + golden set → Worker/loop,
-  all committed and pushed to `origin/main`. Pushing works from the agent shell (token in
-  `wincred`).
+- **Validator** — `src/validate.ts`: DuckDB's own parser (`json_serialize_sql`) is the
+  load-bearing guard (single SELECT only → rejects DDL/COPY/ATTACH/INSTALL/LOAD/PRAGMA/
+  SET/CALL and stacked statements, comment-hidden included), plus an AST walk that rejects
+  file/network functions (`read_csv`/`read_parquet`/`read_text`/`read_blob`/`glob`, even
+  nested). Wired into Run via `serializeSql` in `db.ts`. `scripts/attack-validator.mjs`
+  (`npm run attack-validator`) runs 31 adversarial cases — all match expectation. Backstop
+  is the read-only WASM sandbox (no httpfs; VFS holds only the registered Parquet).
+  Live in-browser test still pending (needs `json_serialize_sql` in DuckDB-WASM — verify
+  on next run).
+- **Git** — plan → data pipeline → loader → snippets + golden set → Worker/loop →
+  coded-value decode → validator, all committed and pushed to `origin/main`. Pushing works
+  from the agent shell (token in `wincred`).
 
 ## Next
 
-1. **Smoke-test the live loop** — `wrangler login`, run both dev commands, ask a golden
-   question, confirm sensible SQL + rendered table. (User step — needs Cloudflare auth.)
-2. **Build + attack the validator** — replace the `src/validate.ts` placeholder with the
-   AST/parser SELECT-only guard + banned-function walk; sandbox backstop; honest bypass
-   table. This is the seam already wired between Generate and Run.
-3. **Full golden harness** — compare the model's SQL result to the reference results in
+1. **Verify the validator in-browser** — confirm `json_serialize_sql` exists in DuckDB-WASM
+   (run a blocked query like `DROP TABLE collisions` and a legit one). If the function is
+   missing in WASM, adapt (it's bundled in most builds; expected to work).
+2. **Full golden harness** — compare the model's SQL result to the reference results in
    `golden-expected.json`, context-on vs context-off (the Worker already accepts
-   `withContext`); paste the pass/fail table into `VERIFICATION.md`.
+   `withContext`); produce a pass/fail table.
+3. **Assemble `VERIFICATION.md`** — the golden pass/fail table; the validator bypass table
+   (`npm run attack-validator`) with the honest denylist-gap + sandbox-backstop note; the
+   semantic-correctness write-up (fuzzy weather count-vs-danger; the -1/9 divergence);
+   and >=3 known failures with diagnoses.
 
 ## Locked decisions (see PLAN.md for the why)
 

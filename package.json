@@ -11,7 +11,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
     "prepare-data": "node scripts/prepare-data.mjs",
     "build-codes": "node scripts/build-codes.mjs",
-    "verify-golden": "node scripts/verify-golden.mjs"
+    "verify-golden": "node scripts/verify-golden.mjs",
+    "attack-validator": "node scripts/attack-validator.mjs"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.29.0"

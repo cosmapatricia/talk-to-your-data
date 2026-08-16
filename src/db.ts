@@ -3,6 +3,7 @@ import mvpWasm from '@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url';
 import mvpWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url';
 import ehWasm from '@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url';
 import ehWorker from '@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url';
+import type { SerializedSql } from './validate';
 
 // Single-thread bundles only (mvp / eh). We deliberately omit the coi (threaded)
 // bundle: it needs SharedArrayBuffer and COOP/COEP cross-origin isolation, which is
@@ -52,6 +53,24 @@ export async function query(sql: string): Promise<Record<string, unknown>[]> {
   try {
     const table = await conn.query(sql);
     return table.toArray().map((row) => row.toJSON() as Record<string, unknown>);
+  } finally {
+    await conn.close();
+  }
+}
+
+/**
+ * Parses `sql` with DuckDB's own parser and returns the serialized AST — the input to the
+ * validator. Single quotes are doubled so the query text is a safe string literal. Errors
+ * (non-SELECT input) come back as `{ error: true, ... }` rather than throwing.
+ */
+export async function serializeSql(sql: string): Promise<SerializedSql> {
+  const db = await getDb();
+  const conn = await db.connect();
+  try {
+    const escaped = sql.replaceAll("'", "''");
+    const table = await conn.query(`SELECT json_serialize_sql('${escaped}') AS j`);
+    const j = table.toArray()[0]?.toJSON()?.j;
+    return JSON.parse(String(j)) as SerializedSql;
   } finally {
     await conn.close();
   }

@@ -1,4 +1,4 @@
-import { query } from './db';
+import { query, serializeSql } from './db';
 import { validateSql } from './validate';
 import schema from '../shared/schema.json';
 import codes from '../shared/codes.json';
@@ -86,8 +86,8 @@ async function onRun(): Promise<void> {
   if (!sql) return;
   setMsg();
 
-  // Validator seam — currently a placeholder; the real guard slots in here next.
-  const verdict = validateSql(sql);
+  // Validator: SELECT-only guard (DuckDB parser + banned-function walk) before we run.
+  const verdict = await validateSql(sql, serializeSql);
   if (!verdict.ok) {
     clearResults();
     setMsg(`Blocked by validator: ${verdict.message ?? 'not a read-only query'}`);
