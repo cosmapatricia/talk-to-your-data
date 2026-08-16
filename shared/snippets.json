@@ -85,7 +85,7 @@
     {
       "id": "example-fog-serious",
       "category": "example",
-      "text": "Q: How many serious or fatal collisions happened in fog? SQL: SELECT count(*) AS n FROM collisions WHERE collision_severity <= 2 AND weather_conditions = 7"
+      "text": "Q: How many serious or fatal collisions happened in fog? SQL: SELECT count(*) AS collisions FROM collisions WHERE collision_severity <= 2 AND weather_conditions = 7"
     },
     {
       "id": "example-by-month",
@@ -95,7 +95,7 @@
     {
       "id": "example-by-speed-limit",
       "category": "example",
-      "text": "Q: Collisions by speed limit? SQL: SELECT speed_limit, count(*) AS n FROM collisions WHERE speed_limit NOT IN (-1, 99) GROUP BY 1 ORDER BY 1"
+      "text": "Q: Collisions by speed limit? SQL: SELECT speed_limit, count(*) AS collisions FROM collisions WHERE speed_limit NOT IN (-1, 99) GROUP BY 1 ORDER BY 1"
     }
   ]
 }
