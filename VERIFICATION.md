@@ -100,6 +100,16 @@ Approach: hand-authored reference SQL catches "answered the wrong question" for 
 questions; for genuinely ambiguous ones, we grade on shape + a spot-checked value and label
 them fuzzy rather than pretend a single answer exists.
 
+That approach only covers the golden set — it is an *offline* check. For an arbitrary user
+question there is no reference SQL, so nothing automatically flags a clean-but-wrong answer at
+runtime. The runtime defence is **transparency, not automation**: the generated SQL is shown,
+editable, and re-runnable with a one-line rationale, so a user can read it and catch a
+wrong-question answer themselves (e.g. notice that a "most collisions" query returned fine
+weather). That is a partial mitigation, not a solution — I did not build an automated semantic
+guard (LLM-as-judge, ask-twice / self-consistency) for general questions. **How far I got:**
+reference-SQL comparison + fuzzy labelling for the golden set, and inspectable SQL + rationale for
+everything else; general semantic-correctness detection remains unsolved.
+
 ## 3. Attacking my own validator
 
 The guard (`src/validate.ts`) is defense-in-depth: DuckDB's own parser
