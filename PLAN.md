@@ -64,3 +64,14 @@ _(Where I left this plan and what changed my mind.)_
 - **Retrieval: inlined the full corpus, but did not run the full-vs-subset distraction test.** The plan framed top-k-vs-inline as something the golden set would answer. In practice the harness compares context-on vs context-off (all snippets vs none), not full-corpus vs a focused subset — so it does *not* measure whether the full set distracts the model. At ~20 snippets I judged that test low-value and didn't build it; the "corpus size at which I'd switch to selection" therefore remains a described condition, not a measured threshold. The on/off A/B still stands as the retrieval-improves-SQL evidence.
 - **Did not confirm against a frontier model.** The plan said I'd swap in a frontier model to separate model-capability failures from pipeline failures. I didn't — the 8b performed well enough (10/11 context-on) that capability failures barely appeared, and I didn't add an external key for one comparison. The `generateSQL()` seam is one line away; the model-vs-pipeline boundary is therefore reasoned, not experimentally confirmed.
 - …
+
+## Time spent
+
+Roughly five hours of build, per the timebox, across two short sessions:
+
+- **Fri (~1–2h)** — wrote this plan first, then the data pipeline (CSV → committed Parquet + schema snapshot) and the DuckDB-WASM browser loader.
+- **Sun (~3–4h)** — retrieval snippets + golden set, the Worker and `generateSQL()` loop, the validator + 31-case attack suite, coded-value decode, and the golden harness + `VERIFICATION.md`.
+
+Most of the code was written by an AI agent, as the brief expects; the ~5 hours were my engaged time — planning, directing the agent, stress-testing the model, and designing the verification. Where I hit the limit I recorded what I did *not* do rather than pushing past it (see the divergence log above and the `VERIFICATION.md` known-failures: no frontier-model check, no general semantic guard, no full-vs-subset distraction test).
+
+A separate later pass (~1h) audited the write-up so no claim outran its evidence — that's the softening and divergence entries dated after the build, not additional build time.
