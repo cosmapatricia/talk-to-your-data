@@ -72,6 +72,14 @@ Two concrete findings from this run:
 
 Full per-question detail (including the model SQL for each arm) is in `shared/golden-results.json`.
 
+**Model capability vs. pipeline.** The default model is the small
+`@cf/meta/llama-3.1-8b-instruct-fast`, so in principle some failures could be model capability
+rather than pipeline (retrieval / prompt / schema). In practice it composed correctly on 10/11
+graded questions with context, and the one context-on failure (`wet-vs-dry`) is a
+broader-answer / shape difference, not a capability gap. I did **not** swap in a frontier model
+to isolate capability from pipeline — the `generateSQL()` seam makes it a one-line change, but I
+did not run it, so where that boundary falls is reasoned, not measured.
+
 ## 2. Semantic correctness — right table, wrong question
 
 A query can execute cleanly, return a tidy table, and answer a subtly different question
