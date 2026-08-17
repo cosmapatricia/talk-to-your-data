@@ -130,6 +130,14 @@ to read). In other words, even a validator bypass has nothing to reach: no netwo
 on disk but the data the app already loaded. The parser + AST walk give readable, early rejection
 in the UI; the sandbox is what makes a miss non-fatal.
 
+To be precise about what is tested vs. reasoned: the parser + AST walk are the **tested** layer
+(31-case suite + the in-browser DROP block). The sandbox backstop is a **design argument** from
+the architecture — `httpfs` is never loaded and the virtual FS holds only the registered file —
+**not** an exhaustively tested one. I did not run every DuckDB file/network function against the
+WASM sandbox, and DuckDB can in some builds attempt to autoload an extension on first use, so the
+honest claim is "by construction there is nothing to reach," not "every function was verified to
+fail."
+
 ## 4. Known failures & fragilities
 
 At least three things that are broken, fragile, or wrong, each with a diagnosis.
