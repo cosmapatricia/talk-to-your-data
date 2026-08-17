@@ -24,7 +24,8 @@ continues.
 - **Vector retrieval (Vectorize).** The agent's early instinct was to reach for a vector
   store. I pushed back: at ~20 snippets that fit in the prompt wholesale, that's
   infrastructure for a problem I don't have. We kept retrieval as plain inlining and
-  wrote down the threshold at which selection would earn its place.
+  wrote down the conditions under which selection would earn its place (when the snippet
+  corpus outgrows the prompt, or the corrections extension is attempted).
 - **Risk framing.** I kept my own "highest-severity (validator) vs. least-understood
   (semantic correctness)" split rather than collapsing to a single headline risk.
 
