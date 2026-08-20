@@ -179,9 +179,11 @@ At least three things that are broken, fragile, or wrong, each with a diagnosis.
    `AI-USAGE.md`.)
 
 3. **Validator denylist is not exhaustive.** As in §3, a novel file/network function could pass
-   the AST walk. _Diagnosis:_ denylists can't enumerate the future. _Mitigation:_ the read-only
-   WASM sandbox (no `httpfs`, single registered file) means a bypass has nothing to reach; the
-   denylist is the readable-error layer, not the security boundary.
+   the AST walk. _Diagnosis:_ a denylist can only block the functions I thought to name.
+   _Mitigation:_ this is one of three layers — DuckDB's parser still rejects every non-SELECT
+   statement (tested), the denylist blocks the file/network functions I did name, and for one that
+   slips through, the WASM sandbox (no `httpfs`, an in-memory filesystem holding only the
+   registered Parquet) is the backstop — a reasoned one, not exhaustively tested (see §3).
 
 4. **Single-year data — no cross-year trends.** The dataset is 2025 only (a deliberate cut; DfT's
    severity-reporting change breaks cross-year comparability). _Diagnosis:_ any "trend over the
