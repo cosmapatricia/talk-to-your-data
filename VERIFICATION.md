@@ -141,10 +141,12 @@ checks are layered rather than collapsed into one.
 
 **What slips through, and why the sandbox still holds.** The banned-function list is a
 **denylist, and not exhaustive by construction** — a file- or network-reading function I didn't
-enumerate could pass the AST walk. That gap is covered by the backstop: DuckDB-WASM runs on a
-read-only connection with **`httpfs` never loaded** (so there is no network egress at all) and a
+enumerate could pass the AST walk. That gap is covered by the backstop: DuckDB-WASM runs an
+in-memory database with **`httpfs` never loaded** (so there is no network egress at all) and a
 virtual filesystem that holds **only the one registered Parquet** (so there is no arbitrary file
-to read). In other words, even a validator bypass has nothing to reach: no network, and nothing
+to read). The read-only property is enforced by the validator (SELECT-only) plus those two facts —
+**not** a connection-level `read_only` flag: the database is in-memory and ephemeral, so any write
+goes nowhere on the host, and read-only mode would in fact reject the startup `CREATE VIEW`. In other words, even a validator bypass has nothing to reach: no network, and nothing
 on disk but the data the app already loaded. The parser + AST walk give readable, early rejection
 in the UI; the sandbox is what makes a miss non-fatal.
 
