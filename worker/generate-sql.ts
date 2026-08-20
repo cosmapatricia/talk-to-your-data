@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import type { GenerateResult, SchemaSnapshot, Snippet, SnippetsFile } from '../shared/types';
 import schemaJson from '../shared/schema.json';
 import snippetsJson from '../shared/snippets.json';
