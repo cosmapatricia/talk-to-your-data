@@ -115,10 +115,14 @@ everything else; general semantic-correctness detection remains unsolved.
 The guard (`src/validate.ts`) is defense-in-depth: DuckDB's own parser
 (`json_serialize_sql`, which serializes **only** SELECT statements) is the load-bearing
 check, plus an AST walk that rejects file/network functions by name. `scripts/attack-validator.mjs`
-(`npm run attack-validator`) runs **31 adversarial cases; all match expectation.** Confirmed on
-the real browser path too: `DROP TABLE collisions` is blocked with a readable message and a
-normal query runs — so `json_serialize_sql` is available in DuckDB-WASM and the guard is not
-Node-only.
+(`npm run attack-validator`) runs **31 adversarial cases; all match expectation — but in Node.**
+⚠️ **Caveat (corrected):** the suite runs against **Node DuckDB** (`@duckdb/node-api`, 1.5.5),
+while the validator actually runs in the browser against **DuckDB-WASM** (1.32.0) — a *different
+DuckDB version*. They are **not** the same engine, so this suite does **not** faithfully represent
+the live guard. In the browser I confirmed `DROP TABLE collisions` is blocked and normal queries
+run, but I also found a real divergence: WASM's `json_serialize_sql` **errors on `FILTER (WHERE …)`
+clauses** (Node's does not), and the validator misreads that as "not a SELECT" and **wrongly blocks
+a valid query**. So the validator is under-tested in its real runtime — see known-failure #7.
 
 | Attack class | Example | Result | Caught by |
 | --- | --- | --- | --- |
@@ -203,3 +207,20 @@ At least three things that are broken, fragile, or wrong, each with a diagnosis.
    questions with no single canonical form; exact FAILs are treated as prompts for manual review,
    not automatic verdicts. A future harness could compare on a canonicalised value set rather
    than row/column structure.
+
+7. **Validator false-positive: it wrongly blocks valid `FILTER` queries in the browser.** The
+   validator's "is this a single SELECT?" check relies on DuckDB's `json_serialize_sql`. In the
+   browser (DuckDB-WASM 1.32.0) that function **errors on a `count(*) FILTER (WHERE …)` clause**,
+   and my code treats a serialization error as "not a SELECT" and rejects the query with
+   *"only a single read-only SELECT query is allowed."* But the query is a perfectly valid single
+   SELECT — Node DuckDB (1.5.5) serializes it fine. _Impact:_ any `FILTER` query is blocked in the
+   app, which includes **two golden questions** (`wet-vs-dry`, `urban-fatal-share`) — they pass the
+   Node harness but fail end-to-end in the browser. _Diagnosis, two parts:_ (a) I used
+   "`json_serialize_sql` failed" as a proxy for "not a SELECT," but it can also fail on a *valid*
+   SELECT the WASM serializer doesn't support — the two are indistinguishable to my code; and
+   (b) my whole validator test story (the 31-case suite) runs in **Node**, a different DuckDB
+   version than the **WASM** engine the validator actually uses — so the tests don't exercise the
+   real runtime, and only running the live app surfaced this. _Mitigation:_ none yet — documented,
+   not fixed. The proper fix stops treating a serialize-failure as "not a SELECT" (determine
+   single-statement + starts-with-SELECT robustly, use `json_serialize_sql` only for the
+   function walk with a fallback), and moves the attack suite into the browser/WASM runtime.

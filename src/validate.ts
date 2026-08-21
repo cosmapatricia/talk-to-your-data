@@ -22,8 +22,10 @@ export interface SerializedSql {
   statements?: Array<{ node?: { type?: string } }>;
 }
 
-/** Runs DuckDB's json_serialize_sql and returns the parsed AST. Node and WASM share the
- *  same parser, so the same validator runs identically in tests and in the browser. */
+/** Runs DuckDB's json_serialize_sql and returns the parsed AST. NOTE: Node DuckDB and
+ *  DuckDB-WASM are *different versions* and do NOT behave identically — WASM's serializer
+ *  errors on some valid SELECTs (e.g. a `FILTER (WHERE …)` clause), which this validator
+ *  misreads as "not a SELECT" and wrongly blocks. See VERIFICATION.md known-failure #7. */
 export type Serializer = (sql: string) => Promise<SerializedSql>;
 
 // File/network/side-effecting functions that ARE legal inside a SELECT and so slip past

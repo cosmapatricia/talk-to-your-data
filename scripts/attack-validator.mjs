@@ -4,8 +4,11 @@
  *
  *   npm run attack-validator
  *
- * The validator uses DuckDB's own parser (json_serialize_sql). Node DuckDB and the
- * browser's DuckDB-WASM share that parser, so the results here match the browser's guard.
+ * The validator uses DuckDB's own parser (json_serialize_sql). WARNING: this suite runs on
+ * Node DuckDB, which is a DIFFERENT version than the browser's DuckDB-WASM — they do NOT
+ * behave identically. WASM's json_serialize_sql errors on some valid SELECTs (e.g. a
+ * `FILTER (WHERE …)` clause) that Node accepts, so passing here does NOT prove the browser
+ * guard behaves the same. See VERIFICATION.md known-failure #7.
  * json_serialize_sql is parse-only (no catalog binding), so the referenced tables need
  * not exist. Exit code is non-zero if any case does not match its expectation.
  */
