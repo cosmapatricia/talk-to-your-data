@@ -31,7 +31,8 @@ continues.
 
 ## The agent being confidently wrong — and how I caught it
 
-Two concrete cases, both caught at **runtime**, not review:
+Three cases — the first two caught at **runtime**, the third caught by reproducing a report
+before trusting it:
 
 1. **A hardcoded model ID that had been deprecated.** The agent set the Workers AI model
    to `@cf/meta/llama-3.1-8b-instruct` with full confidence. That ID was deprecated on
@@ -52,7 +53,20 @@ Two concrete cases, both caught at **runtime**, not review:
    response shape from one remembered example; handle the variants and surface the raw
    payload on failure.
 
-Both are the same underlying failure mode: the agent is fluent and confident about
-external contracts (model IDs, response shapes) it can't actually verify from training,
-and those slip past type-checking and builds because they're only wrong at runtime. My
-guard against it is to run the real thing early and read the actual errors.
+3. **A phantom bug, documented from a single unverified report.** When I reported that a
+   `FILTER` query was "blocked by the validator," the agent immediately wrote it up as a
+   *confirmed* bug — a validator false-positive **and** a Node-vs-WASM parser divergence — and
+   committed it to `VERIFICATION.md` as a known-failure, *before reproducing it*. It was wrong:
+   the block came from stray `"` quotes I had copied around the query (which correctly made it
+   invalid SQL); the bare `FILTER` query works fine. Caught when I re-tested the bare query in
+   the browser. The agent reverted the phantom and re-investigated properly — running the actual
+   `validateSql` — which *did* surface a real false-positive: the validator over-blocks
+   `UNION` / `EXCEPT` / `INTERSECT` (known-failure #7). Lesson: the agent will confidently turn
+   one data point into a documented "fact"; reproduce a failure through the real code path before
+   recording it.
+
+The first two share one failure mode: the agent is fluent and confident about external
+contracts (model IDs, response shapes) it can't verify from training, and those slip past
+type-checking and builds because they're only wrong at runtime. The third is a related trap —
+over-generalising from a single report into a documented fact. The guard against both is the
+same: run the real thing, and reproduce the real failure, before trusting or recording it.
