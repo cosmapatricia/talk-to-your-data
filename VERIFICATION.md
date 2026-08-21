@@ -203,3 +203,17 @@ At least three things that are broken, fragile, or wrong, each with a diagnosis.
    questions with no single canonical form; exact FAILs are treated as prompts for manual review,
    not automatic verdicts. A future harness could compare on a canonicalised value set rather
    than row/column structure.
+
+7. **Validator over-blocks set operations (`UNION` / `EXCEPT` / `INTERSECT`).** The SELECT-only
+   check accepts only `node.type === 'SELECT_NODE'`, but DuckDB parses a set operation into a
+   `SET_OPERATION_NODE` (whose children are ordinary SELECTs). So a legitimate **read-only**
+   `SELECT 1 UNION SELECT 2` is wrongly rejected with *"only SELECT queries are allowed"* —
+   confirmed end-to-end through `validateSql` for `UNION`, `EXCEPT`, and `INTERSECT`. _Diagnosis:_
+   the statement-type check is too narrow — a set operation only reads and combines SELECTs, so
+   there is no security reason to block it; this is a false-positive, not a hole. It is
+   version-independent (Node and browser/WASM classify a set operation the same way). _Impact:_
+   any question the model answers with a set operation won't run in the app, even though the query
+   is safe. _Mitigation:_ none applied — documented, not fixed. The fix is small and safe: also
+   accept `SET_OPERATION_NODE` in the statement check; the banned-function walk already recurses
+   the whole tree, so a file/network function inside a UNION arm would still be caught, so widening
+   the check does not open a hole.
